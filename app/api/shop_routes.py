@@ -68,9 +68,48 @@ def removeFromCartAPI(product_id):
 
 stripe.api_key = os.environ.get('STRIPE_API_KEY')
 
+#### SIMON'S ####
+
+@api.post('/checkout/homework')
+def checkout_homework():
+    # try & except, then redirect.
+    try:
+        # get items in cart
+        data = request.form #get items in the cart
+        print(data)
+        line_items = []
+        print(data.items())
+        for name, list in data.items():
+            newList = list.split(",")
+            newPrice = newList[0][:(len(newList[0])-3)] + newList[0][len(newList[0])-2:len(newList[0])]
+            line_items.append({
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': name,
+                        'images':[newList[2]],
+                        'description':newList[3],
+                    },
+                    #'unit_amount': int(float(newList[0])*100.00) ,
+                    'unit_amount': newPrice ,
+                },
+                'quantity': newList[1],
+            })
+        checkout_session = stripe.checkout.Session.create(
+            line_items=line_items,
+            mode='payment',
+            success_url = FRONT_END_URL + '/shop?success=true',
+            cancel_url=FRONT_END_URL + '/shop?canceled=true'
+        )
+
+    except Exception as e:
+        return str(e)
+    return redirect(checkout_session.url, code=303)
 
 
 
+
+#### SHOHA'S ####
 @api.post('/checkout')
 def checkout():
     try:
